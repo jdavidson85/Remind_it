@@ -1,0 +1,176 @@
+import SwiftUI
+import PlaygroundSupport
+
+// MARK: - Reminder Model
+
+// Represents a reminder entity.
+struct Reminder: Identifiable, Equatable {
+    var id = UUID()
+    var title: String
+    var description: String
+    var date: Date
+}
+
+// MARK: - Reminder Manager
+
+// Manages reminders, including creation, deletion, and editing.
+class ReminderManager: ObservableObject {
+    @Published var reminders: [Reminder] = []
+
+    // Creates a new reminder.
+    func createReminder(title: String, description: String, date: Date) {
+        let newReminder = Reminder(title: title, description: description, date: date)
+        reminders.append(newReminder)
+    }
+
+    // Deletes a reminder at the specified index.
+    func deleteReminder(at index: Int) {
+        reminders.remove(at: index)
+    }
+
+    // Edits a reminder at the specified index with new details.
+    func editReminder(at index: Int, title: String, description: String, date: Date) {
+        reminders[index].title = title
+        reminders[index].description = description
+        reminders[index].date = date
+    }
+}
+
+// MARK: - Reminder Views
+
+// Displays a list of reminders with options to add, edit, and delete reminders.
+struct ReminderView: View {
+    @StateObject var reminderManager = ReminderManager()
+    @State private var showingAddReminderView = false
+    @State private var editingReminderIndex: Int?
+    @State private var showingEditReminderView = false
+
+    var body: some View {
+        NavigationView {
+            VStack {
+                List {
+                    ForEach(reminderManager.reminders) { reminder in
+                        ReminderRow(reminder: reminder)
+                            .contextMenu {
+                                Button("Edit") {
+                                    editingReminderIndex = reminderManager.reminders.firstIndex(of: reminder)
+                                    showingEditReminderView = true
+                                }
+                                Button("Delete") {
+                                    if let index = reminderManager.reminders.firstIndex(of: reminder) {
+                                        reminderManager.deleteReminder(at: index)
+                                    }
+                                }
+                            }
+                    }
+                }
+                .navigationTitle("Remind It")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            showingAddReminderView.toggle()
+                        }) {
+                            Image(systemName: "plus")
+                        }
+                    }
+                }
+                .sheet(isPresented: $showingAddReminderView) {
+                    AddReminderView(reminderManager: reminderManager)
+                }
+                .sheet(isPresented: $showingEditReminderView) {
+                    if let index = editingReminderIndex {
+                        EditReminderView(reminderManager: reminderManager, reminderIndex: index)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Displays a single reminder in the list.
+struct ReminderRow: View {
+    let reminder: Reminder
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(reminder.title)
+                .font(.headline)
+            Text(reminder.description)
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            Text("\(reminder.date)")
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+    }
+}
+
+/// Allows users to add a new reminder.
+struct AddReminderView: View {
+    @ObservedObject var reminderManager: ReminderManager
+    @State private var title = ""
+    @State private var description = ""
+    @State private var date = Date()
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Reminder Details")) {
+                    TextField("Title", text: $title)
+                    TextField("Description", text: $description)
+                    DatePicker("Date", selection: $date, displayedComponents: [.date, .hourAndMinute])
+                }
+
+                Section {
+                    Button("Save") {
+                        reminderManager.createReminder(title: title, description: description, date: date)
+                    }
+                    .disabled(title.isEmpty || description.isEmpty)
+                }
+            }
+            .navigationTitle("Add Reminder")
+        }
+    }
+}
+
+/// Allows users to edit an existing reminder.
+struct EditReminderView: View {
+    @ObservedObject var reminderManager: ReminderManager
+    let reminderIndex: Int
+    @State private var title = ""
+    @State private var description = ""
+    @State private var date = Date()
+
+    var body: some View {
+        let reminder = reminderManager.reminders[reminderIndex]
+        NavigationView {
+            Form {
+                Section(header: Text("Reminder Details")) {
+                    TextField("Title", text: $title)
+                        .onAppear {
+                            title = reminder.title
+                        }
+                    TextField("Description", text: $description)
+                        .onAppear {
+                            description = reminder.description
+                        }
+                    DatePicker("Date", selection: $date, displayedComponents: [.date, .hourAndMinute])
+                        .onAppear {
+                            date = reminder.date
+                        }
+                }
+
+                Section {
+                    Button("Save") {
+                        reminderManager.editReminder(at: reminderIndex, title: title, description: description, date: date)
+                    }
+                    .disabled(title.isEmpty || description.isEmpty)
+                }
+            }
+            .navigationTitle("Edit Reminder")
+        }
+    }
+}
+
+let contentView = ReminderView()
+PlaygroundPage.current.setLiveView(contentView)
