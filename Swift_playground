@@ -1,0 +1,118 @@
+import Foundation
+
+// `Reminder` represents a reminder entity that can be created, edited, and deleted.
+// It also provides functionality to view the details of the reminder.
+struct Reminder {
+    var title: String
+    var description: String
+    var date: Date
+
+    // Initializes a new reminder with the specified details.
+    //   - Parameters:
+    //   - title: The title of the reminder.
+    //   - description: The description or details of the reminder.
+    //   - date: The date and time for the reminder.
+    init(title: String, description: String, date: Date) {
+        self.title = title
+        self.description = description
+        self.date = date
+    }
+}
+
+// `ReminderManager` manages the reminders in the app by providing functions to create, edit, delete, and view reminders.
+class ReminderManager {
+    var reminders: [Reminder]
+
+    // Initializes a new ReminderManager with an array list of reminders.
+    init() {
+        self.reminders = []
+    }
+
+    // Creates a new reminder with the details and adds it to the list of reminders.
+    //   - Parameters:
+    //   - title: The title of the reminder.
+    //   - description: The description or details of the reminder.
+    //   - date: The date and time for the reminder.
+    func createReminder(title: String, description: String, date: Date) {
+        let newReminder = Reminder(title: title, description: description, date: date)
+        reminders.append(newReminder)
+    }
+
+    // Edits the details of an existing reminder based on the index in the reminders list.
+    //   - Parameters:
+    //   - index: The index of the reminder to be edited.
+    //   - newTitle: The new title for the reminder.
+    //   - newDescription: The new description for the reminder.
+    //   - newDate: The new date and time for the reminder.
+    func editReminder(at index: Int, newTitle: String, newDescription: String, newDate: Date) {
+        guard index >= 0, index < reminders.count else {
+            return
+        }
+
+        reminders[index].title = newTitle
+        reminders[index].description = newDescription
+        reminders[index].date = newDate
+    }
+
+    // Deletes a reminder based on the index in the reminders list.
+    // - Parameter index: The index of the reminder to be deleted.
+    func deleteReminder(at index: Int) {
+        guard index >= 0, index < reminders.count else {
+            return
+        }
+
+        reminders.remove(at: index)
+    }
+
+    // Views the details of a specific reminder based on the index in the reminders list.
+    // - Parameter index: The index of the reminder to view.
+    // - Returns: The reminder at the specified index, or nil if the index is out of bounds.
+    func viewReminder(at index: Int) -> Reminder? {
+        guard index >= 0, index < reminders.count else {
+            return nil
+        }
+
+        return reminders[index]
+    }
+
+    // Print all reminders
+    func printAllReminders() {
+        print("All Reminders:")
+        for (index, reminder) in reminders.enumerated() {
+            print("Reminder \(index + 1):")
+            print("Title: \(reminder.title)")
+            print("Description: \(reminder.description)")
+            print("Date: \(reminder.date)")
+            print("--------------------------")
+        }
+    }
+}
+
+// Example of using the ReminderManager class:
+
+// Initialize the ReminderManager environment
+let reminderManager = ReminderManager()
+
+// Create a new reminder
+reminderManager.createReminder(title: "Demonstration", description: "Week 4", date: Date())
+reminderManager.createReminder(title: "Sprint", description: "Week 4", date: Date())
+reminderManager.createReminder(title: "Updated code", description: "Added in more reminders/tasks.", date: Date())
+reminderManager.createReminder(title: "Updated Trello Board", description: "Sprint ", date: Date())
+reminderManager.createReminder(title: "Sprint Project", description: "Presentation", date: Date())
+
+// Edit an existing reminder
+reminderManager.editReminder(at: 0, newTitle: "Presentation", newDescription: "Zoom Meeting", newDate: Date())
+
+// View the details of a reminder
+if let reminder = reminderManager.viewReminder(at: 0) {
+    print("Reminder Title: \(reminder.title)")
+    print("Reminder Description: \(reminder.description)")
+    print("Reminder Date: \(reminder.date)")
+}
+
+// Delete a reminder
+reminderManager.deleteReminder(at: 4)
+
+
+// Print all reminders
+reminderManager.printAllReminders()
